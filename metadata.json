@@ -1,0 +1,6 @@
+{
+  "name": "With Egypt",
+  "description": "With Egypt... مستقبل الخدمات الذكية في مصر - تطبيق راحتك تهمنا متعدد الخدمات",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
