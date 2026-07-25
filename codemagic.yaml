@@ -1,23 +1,56 @@
 workflows:
-  web-to-apk:
-    name: Build AI Studio Web to Android APK
+  android-build:
+    name: Android Release Build
     max_build_duration: 60
     instance_type: mac_mini_m1
-    scripts:
-      - name: Install Dependencies
-        script: |
-          npm install
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-      - name: Initialize Capacitor and Add Android
-        script: |
-          npx cap init "App" "com.example.app" --web-dir .
-          npx cap add android
-          npx cap sync
-      - name: Build Android APK
-        script: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-    artifacts:
-      - android/app/build/outputs/apk/**/*.apk
 
+    environment:
+      android_substitutions:
+        JAVA_VERSION: 17
+      vars:
+        PACKAGE_NAME: "com.example"
+      groups:
+        - google_play
+
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: true
+        - pattern: 'master'
+          include: true
+          source: true
+
+    scripts:
+      - name: Set up Java
+        script: |
+          jdk use 17
+
+      - name: Set Android SDK location
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+
+      - name: Run Unit Tests
+        script: |
+          gradle testDebugUnitTest
+
+      - name: Build Android App (APK & AAB)
+        script: |
+          gradle assembleRelease assembleDebug bundleRelease
+
+    artifacts:
+      - app/build/outputs/apk/**/*.apk
+      - app/build/outputs/bundle/**/*.aab
+      - app/build/outputs/mapping/**/mapping.txt
+      - app/build/reports/tests/**
+
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+        notify:
+          on_success: true
+          on_failure: true
